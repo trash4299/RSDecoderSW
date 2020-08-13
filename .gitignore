@@ -37,4 +37,4 @@
 /RemoteSystemsTempFiles
 /webtalk
 .analytics
-*.log
+*.ui.log
