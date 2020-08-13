@@ -38,3 +38,5 @@
 /webtalk
 .analytics
 *.ui
+/.log
+/Debug
