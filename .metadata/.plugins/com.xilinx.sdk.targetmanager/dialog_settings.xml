@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<item value="C:\Users\vince\Documents\Personal Projects\SudokuSolver_NexysVideo\SudokuSolver_NexysVideo.runs\impl_1\design_1_wrapper.bit" key="&lt;None&gt;-bitFile"/>
+	<item value="" key="&lt;None&gt;-bmmFile"/>
+	<item value="Auto Detect" key="&lt;None&gt;-device"/>
+	<item value="Local" key="&lt;None&gt;-target"/>
+	<item value="&lt;None&gt;" key="programfpga.sdxproject"/>
+	<item value="false" key="&lt;None&gt;-partial_bit"/>
+	<item value="false" key="&lt;None&gt;-skip_rev_check"/>
+</section>

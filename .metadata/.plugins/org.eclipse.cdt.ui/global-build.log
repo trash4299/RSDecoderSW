@@ -1,0 +1,14 @@
+Nothing to build in platform 'design_1_wrapper'
+
+21:00:05 **** Incremental Build of configuration Debug for project RSDecoder ****
+make all 
+'Building file: ../src/helloworld.c'
+'Invoking: MicroBlaze gcc compiler'
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/helloworld.o" -IC:/Users/vince/VitisWorkspace/design_1_wrapper/export/design_1_wrapper/sw/design_1_wrapper/standalone_domain/bspinclude/include -mlittle-endian -mcpu=v11.0 -mxl-soft-mul -Wl,--no-relax -ffunction-sections -fdata-sections -MMD -MP -MF"src/helloworld.d" -MT"src/helloworld.o" -o "src/helloworld.o" "../src/helloworld.c"
+../src/helloworld.c:53:26: error: 'MEM_BASE_ADDR' undeclared here (not in a function)
+ #define TX_BUFFER_BASE  (MEM_BASE_ADDR + 0x00000010)
+                          ^~~~~~~~~~~~~
+../src/helloworld.c:59:23: note: in expansion of macro 'TX_BUFFER_BASE'
+ u32 *Packet = (u32 *) TX_BUFFER_BASE;
+                       ^~~~~~~~~~~~~~
+make: *** [src/subdir.mk:26: src/helloworld.o] Error 1
