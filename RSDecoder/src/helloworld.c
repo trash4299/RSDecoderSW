@@ -29,13 +29,10 @@
 
 #define TX_BUFFER_BASE		(MEM_BASE_ADDR + 0x00100000)
 #define RX_BUFFER_BASE		(MEM_BASE_ADDR + 0x00300000)
-#define RX_BUFFER_HIGH		(MEM_BASE_ADDR + 0x004FFFFF)
 
 #define MAX_PKT_LEN		0x20
 
 #define TEST_START_VALUE	0xC
-
-#define NUMBER_OF_TRANSFERS	4
 
 /************************** Function Prototypes ******************************/
 extern void xil_printf(const char *format, ...);
@@ -45,6 +42,7 @@ int XAxiDma_SimplePollExample(u16 DeviceId);
 /************************** Variable Definitions *****************************/
 XAxiDma AxiDma;
 unsigned char testPacket[32] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,1,2,3,4,5,0,0,1,0,0,0};
+unsigned char packetBack[32];
 
 int main()
 {
@@ -87,8 +85,7 @@ int XAxiDma_SimplePollExample(u16 DeviceId)
 {
 	XAxiDma_Config *CfgPtr;
 	int Status;
-	int Tries = NUMBER_OF_TRANSFERS;
-	int Index;
+//	int NumTransfers = 4;
 	u8 *TxBufferPtr;
 	u8 *RxBufferPtr;
 
@@ -123,24 +120,28 @@ int XAxiDma_SimplePollExample(u16 DeviceId)
 			TxBufferPtr[i] = testPacket[i];
 	}
 
-	for(Index = 0; Index < Tries; Index ++) {
-		Status = XAxiDma_SimpleTransfer(&AxiDma,(UINTPTR) RxBufferPtr,
-					MAX_PKT_LEN, XAXIDMA_DEVICE_TO_DMA);
-
-		if (Status != XST_SUCCESS) {
-			return XST_FAILURE;
-		}
+	//for(i = 0; i < NumTransfers; i ++) {
 
 		Status = XAxiDma_SimpleTransfer(&AxiDma,(UINTPTR) TxBufferPtr, MAX_PKT_LEN, XAXIDMA_DMA_TO_DEVICE);
-
 		if (Status != XST_SUCCESS) {
 			return XST_FAILURE;
 		}
-
-		while ((XAxiDma_Busy(&AxiDma,XAXIDMA_DEVICE_TO_DMA)) ||
-			(XAxiDma_Busy(&AxiDma,XAXIDMA_DMA_TO_DEVICE))) {
+		while (XAxiDma_Busy(&AxiDma,XAXIDMA_DMA_TO_DEVICE)) {
 				/* Wait */
 		}
-	}
+
+		Status = XAxiDma_SimpleTransfer(&AxiDma,(UINTPTR) RxBufferPtr, MAX_PKT_LEN, XAXIDMA_DEVICE_TO_DMA);
+		if (Status != XST_SUCCESS) {
+			return XST_FAILURE;
+		}
+		while (XAxiDma_Busy(&AxiDma,XAXIDMA_DEVICE_TO_DMA)) {
+			/* Wait */
+		}
+
+		for(int i = 0; i < MAX_PKT_LEN; i++) {
+			packetBack[i] = RxBufferPtr[i];
+			xil_printf("%i: %c   ",i,RxBufferPtr[i]);
+		}
+	//}
 	return XST_SUCCESS;
 }
