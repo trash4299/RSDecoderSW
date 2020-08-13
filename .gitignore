@@ -40,3 +40,6 @@
 *.ui
 /.log
 /Debug
+design_1_wrapper/.log
+RSDecoder/Debug
+RSDecoder_system/Debug

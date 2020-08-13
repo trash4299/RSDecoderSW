@@ -49,30 +49,57 @@
 #include "platform.h"
 #include "xil_printf.h"
 #include "xaxidma.h"
+#include "xintc.h"
 
-#define MEM_BASE_ADDR		0x80000000
+
+#define MEM_BASE_ADDR		0x80000000						//Can be found in design_1_wrapper.xsa base address for the MIG
 #define TX_BUFFER_BASE		(MEM_BASE_ADDR + 0x00000010)
 
 static void runPacket(void);
 
-unsigned char testPacket[21];
-unsigned char decodedPacket[21];
+unsigned char testPacket[21];								//Initialize with values
+unsigned char decodedPacket[21];							//Initialize with values
 u32 *Packet = (u32 *) TX_BUFFER_BASE;
+int Status;
+volatile static int InterruptProcessed = FALSE;
 
-XAxiDma myDMA;
+static XAxiDma myDMA;
+static XIntc InterruptController;
 
 int main()
 {
     init_platform();
+    XInterruptHandler DeviceDriverHandler;
 
-//    * - Set the buffer address and length field in respective channels to start
-//    *   the DMA transfer
+    Status = XIntc_Initialize(&InterruptController, XPAR_AXI_INTC_0_DEVICE_ID);
+	if (Status != XST_SUCCESS) {
+		print("initialize failed");
+		return XST_FAILURE;
+	}
+	Status = XIntc_SelfTest(&InterruptController);
+	if (Status != XST_SUCCESS) {
+		print("self test failed");
+		return XST_FAILURE;
+	}
+	Status = XIntc_Connect(&InterruptController, 0x0, DeviceDriverHandler, (void *)0);
+	if (Status != XST_SUCCESS) {
+		print("connect failed");
+		return XST_FAILURE;
+	}
+	Status = XIntc_Start(&InterruptController, XIN_REAL_MODE);
+	if (Status != XST_SUCCESS) {
+		print("start failed");
+		return XST_FAILURE;
+	}
+
+	XIntc_Enable(&InterruptController, 0x0);
+
 
     XAxiDma_CfgInitialize(&myDMA,XAxiDma_LookupConfigBaseAddr(0x41e00000));
 
-    print("Hello World\n\r");
+    XAxiDma_Start(&myDMA);
 
-//    unsigned char *pktPntr = testPacket;
+    print("Hello World\n\r");
 
     runPacket();
 
@@ -82,35 +109,47 @@ int main()
 
 void runPacket()
 {
-
-	int lastRunReturn = 0;
 	UINTPTR bufAdr = 0xff;
 
 	microblaze_enable_interrupts();
 	XAxiDma_IntrEnable(&myDMA, XAXIDMA_IRQ_IOC_MASK, XAXIDMA_DMA_TO_DEVICE);
 	XAxiDma_IntrEnable(&myDMA, XAXIDMA_IRQ_IOC_MASK, XAXIDMA_DEVICE_TO_DMA);
 
-	lastRunReturn = XAxiDma_SimpleTransfer(&myDMA,bufAdr,0x15,XAXIDMA_DMA_TO_DEVICE);
-	if(lastRunReturn == XST_SUCCESS)
+
+
+	Status = XAxiDma_SimpleTransfer(&myDMA,bufAdr,0x15,XAXIDMA_DMA_TO_DEVICE);
+	if(Status == XST_SUCCESS)
 		print("success of submission");
-	else if(lastRunReturn == XST_FAILURE)
+	else if(Status == XST_FAILURE)
 		print("submission failure, maybe caused by:*Another simple transfer is still going");
-	else if(lastRunReturn == XST_INVALID_PARAM)
+	else if(Status == XST_INVALID_PARAM)
 		print("if:Length out of valid range [1:8M] *address not aligned when DRE is not built in");
+	while (1) {
+		if (InterruptProcessed)
+			break;
+	}
 
 	// Wait for completion
 //	while (XAxiDma_Busy(&myDMA, XAXIDMA_DMA_TO_DEVICE)) { /* Wait */ }
 //	while (XAxiDma_Busy(&myDMA, XAXIDMA_DEVICE_TO_DMA)) { /* Wait */ }
 
 
-	lastRunReturn = XAxiDma_SimpleTransfer(&myDMA,bufAdr,0x15,XAXIDMA_DEVICE_TO_DMA);
-	if(lastRunReturn == XST_SUCCESS)
+	Status = XAxiDma_SimpleTransfer(&myDMA,bufAdr,0x15,XAXIDMA_DEVICE_TO_DMA);
+	if(Status == XST_SUCCESS)
 		print("success of submission");
-	else if(lastRunReturn == XST_FAILURE)
+	else if(Status == XST_FAILURE)
 		print("submission failure, maybe caused by:*Another simple transfer is still going");
-	else if(lastRunReturn == XST_INVALID_PARAM)
+	else if(Status == XST_INVALID_PARAM)
 		print("if:Length out of valid range [1:8M] *address not aligned when DRE is not built in");
 }
 
+void DeviceDriverHandler(void *CallbackRef)
+{
+	/*
+	 * Indicate the interrupt has been processed using a shared variable.
+	 */
+	InterruptProcessed = TRUE;
+
+}
 
 
