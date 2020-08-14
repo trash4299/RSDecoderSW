@@ -127,7 +127,7 @@ int XAxiDma_SimplePollExample(u16 DeviceId)
 			return XST_FAILURE;
 		}
 		while (XAxiDma_Busy(&AxiDma,XAXIDMA_DMA_TO_DEVICE)) {
-				/* Wait */
+			/* Wait */
 		}
 
 		Status = XAxiDma_SimpleTransfer(&AxiDma,(UINTPTR) RxBufferPtr, MAX_PKT_LEN, XAXIDMA_DEVICE_TO_DMA);
