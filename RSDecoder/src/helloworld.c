@@ -1,10 +1,7 @@
+#include "platform.h"
 #include "xaxidma.h"
 #include "xparameters.h"
 #include "xdebug.h"
-
-#if defined(XPAR_UARTNS550_0_BASEADDR)
-#include "xuartns550_l.h"       /* to use uartns550 */
-#endif
 
 /******************** Constant Definitions **********************************/
 #define DMA_DEV_ID		XPAR_AXIDMA_0_DEVICE_ID
@@ -35,7 +32,6 @@
 #define TEST_START_VALUE	0xC
 
 /************************** Function Prototypes ******************************/
-extern void xil_printf(const char *format, ...);
 
 int XAxiDma_SimplePollExample(u16 DeviceId);
 
@@ -66,20 +62,6 @@ int main()
 
 }
 
-#if defined(XPAR_UARTNS550_0_BASEADDR)
-static void Uart550_Setup(void)
-{
-	XUartNs550_SetBaud(XPAR_UARTNS550_0_BASEADDR,
-			XPAR_XUARTNS550_CLOCK_HZ, 9600);
-
-	XUartNs550_SetLineControlReg(XPAR_UARTNS550_0_BASEADDR,
-			XUN_LCR_8_DATA_BITS);
-
-}
-#endif
-
-// The example to do the simple transfer through polling. The constant
-// NUMBER_OF_TRANSFERS defines how many times a simple transfer is repeated.
 
 int XAxiDma_SimplePollExample(u16 DeviceId)
 {
